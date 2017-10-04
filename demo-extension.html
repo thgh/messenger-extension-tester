@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0" />
+  <title>Demo extension</title>
+  <style>
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  </style>
+</head>
+
+<body>
+  Result of getContext:
+  <pre class="context">...</pre>
+  
+  <button onclick="askPermission()">askPermission</button>
+  <pre class="perm">...</pre>
+
+  <button onclick="beginShareFlow()">beginShareFlow</button>
+  <pre class="share">...</pre>
+  <script>
+  window.extAsyncInit = function() {
+    MessengerExtensions.getContext('fake app id', function(context) {
+      document.querySelector('.context').innerText = JSON.stringify(context, null, 2)
+    })
+  }
+
+  function askPermission() {
+    MessengerExtensions.askPermission(function(result) {
+      document.querySelector('.perm').innerText = JSON.stringify(result, null, 2)
+    }, function() {}, 'user_profile')
+  }
+
+  function beginShareFlow() {
+    MessengerExtensions.beginShareFlow(function(result) {
+      document.querySelector('.share').innerText = JSON.stringify(result, null, 2)
+    }, function() {}, {
+      attachment: {
+        type: 'image',
+        payload: {
+          url: 'https://example.org/image.png'
+        }
+      }
+    }, 'broadcast')
+  }
+
+  // Inject Messenger extension tester
+  try {
+    window.MessengerExtensions = window.top.MessengerExtensions
+  } catch (e) {}
+  </script>
+  <script src="//connect.facebook.com/en_US/messenger.Extensions.js"></script>
+</body>
+
+</html>
