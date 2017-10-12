@@ -151,13 +151,13 @@ el.innerHTML = ` <style>
   }
 
   .psids {
-    margin-bottom: 1em;
+    margin: 0 -.2em 1em;
   }
 
   .psids button {
     border: 0;
     border-radius: 3px;
-    margin: 0;
+    margin: 0 .2em;
     padding: .25em .5rem;
     line-height: 1.5em;
     font-size: inherit;
@@ -166,7 +166,8 @@ el.innerHTML = ` <style>
     outline: 0;
   }
 
-  .psids button:hover {
+  .psids button:hover,
+  .psids .active {
     background: #333;
   }
 
@@ -308,13 +309,19 @@ function loadPages() {
 
 function loadContexts() {
   elem.psids.innerHTML = (window.contexts || [defaultContext])
-    .map(context => `<button onclick="setPsid(${context.psid})">${context.name}</button>`)
+    .map(context => `<button onclick="setPsid(event)" data-psid="${context.psid}" class="${localStorage.testerPsid === context.psid ? 'active' : ''}">${context.name}</button>`)
     .join('')
+  elem.psidActive = elem.psids.querySelector('.active')
 }
 
-function setPsid(id) {
-  localStorage.testerPsid = id || ('test' + Math.random().toString())
+function setPsid(event) {
+  localStorage.testerPsid = event.target.dataset.psid || ('test' + Math.random().toString())
   iframe.contentWindow.location.reload()
+  if (elem.psidActive) {
+    elem.psidActive.classList.remove('active')
+  }
+  elem.psidActive = event.target
+  event.target.classList.add('active')
 }
 
 function loadDimensions() {
