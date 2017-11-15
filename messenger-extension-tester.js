@@ -154,7 +154,7 @@ el.innerHTML = ` <style>
     margin: 0 -.2em 1em;
   }
 
-  .psids button {
+  .btn {
     border: 0;
     border-radius: 3px;
     margin: 0 .2em;
@@ -166,8 +166,8 @@ el.innerHTML = ` <style>
     outline: 0;
   }
 
-  .psids button:hover,
-  .psids .active {
+  .btn:hover,
+  .btn.active {
     background: #333;
   }
 
@@ -228,9 +228,10 @@ el.innerHTML = ` <style>
         <button onclick="setWidth(768)">iPad</button>
       </div>
     </div>
-    <label class="section">
+    <div class="section">
       <input type="checkbox" class="confirm" onchange="toggleConfirm()" /> Always confirm
-    </label>
+      <input type="checkbox" class="tab" onchange="toggleTab()" /> Show cards
+    </div>
   </aside>`
 
 const defaultContext = {
@@ -309,7 +310,7 @@ function loadPages() {
 
 function loadContexts() {
   elem.psids.innerHTML = (window.contexts || [defaultContext])
-    .map(context => `<button onclick="setPsid(event)" data-psid="${context.psid}" class="${localStorage.testerPsid === context.psid ? 'active' : ''}">${context.name}</button>`)
+    .map(context => `<button class="btn" onclick="setPsid(event)" data-psid="${context.psid}" class="${localStorage.testerPsid === context.psid ? 'active' : ''}">${context.name}</button>`)
     .join('')
   elem.psidActive = elem.psids.querySelector('.active')
 }
@@ -463,8 +464,11 @@ function fakeMessengerExtensions() {
     },
     beginShareFlow(success, error, message, mode) {
       console.debug('beginShareFlow', message, mode)
+      try {
+        message = message.attachment.payload.elements[0].default_action.url
+      } catch(e){}
       setTimeout(function() {
-        if (quickConfirm('Share message: ' + JSON.stringify(message) + ' (' + mode + ')?')) {
+        if (quickConfirm(message)) {
           success({
             is_sent: true
           })
@@ -484,8 +488,15 @@ function fakeMessengerExtensions() {
 }
 
 function quickConfirm(msg) {
+  var link
+  if (typeof msg === 'string' && msg.startsWith('http')) {
+    link = '<a href="' + msg + '" target="iframe">' + msg + '</a>'
+  }
+  if (msg && typeof msg === 'object') {
+    msg = JSON.stringify(msg)
+  }
   elem.events.classList.add('section')
-  elem.events.innerHTML += '<div>' + msg + '</div>'
+  elem.events.innerHTML += '<div>' + (link || msg) + '</div>'
   if (localStorage.testerConfirm) {
     return true
   } else {
