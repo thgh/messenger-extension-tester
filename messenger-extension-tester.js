@@ -60,6 +60,15 @@ el.innerHTML = ` <style>
     display: block;
   }
 
+  .card {
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .card + .card {
+    margin-top: 1rem;
+  }
+
   .frame {
     border-radius: 0 0 3px 3px;
     overflow: hidden;
@@ -71,8 +80,15 @@ el.innerHTML = ` <style>
     display: block;
     border-radius: 0 0 3px 3px;
     width: 100%;
-    height: calc(100vh - 75px);
     transition: padding .3s;
+  }
+
+  .container--ext iframe {
+    height: calc(100vh - 75px);
+  }
+
+  .container--cards iframe {
+    height: 100%;
   }
 
   .resizer {
@@ -150,6 +166,8 @@ el.innerHTML = ` <style>
     background: #333;
   }
 
+  .bases,
+  .cards,
   .psids {
     margin: 0 -.2em 1em;
   }
@@ -189,6 +207,16 @@ el.innerHTML = ` <style>
     color: white;
   }
 
+  .container--cards {
+    display: none;
+  }
+  .tab--cards .container {
+    display: none;
+  }
+  .tab--cards .container--cards {
+    display: block;
+  }
+
 /*
   @media (min-width: 700px) {
     .container {
@@ -200,7 +228,7 @@ el.innerHTML = ` <style>
     }
   }*/
   </style>
-  <div class="container">
+  <div class="container container--ext">
     <div class="header">
       <span class="title">Messenger extension tester</span>
     </div>
@@ -209,11 +237,19 @@ el.innerHTML = ` <style>
       <div class="resizer" onmousedown="mouseDown(event)"></div>
     </div>
   </div>
+  <div class="container container--cards">
+    <div class="header">
+      <span class="title">Card tester</span>
+    </div>
+    <div class="frame"></div>
+  </div>
   <aside>
     <div>
       <input type="text" class="location" oninput="setLocation(event.target.value)" />
     </div>
     <div class="psids"></div>
+    <div class="bases"></div>
+    <div class="cards"></div>
     <div class="pages"></div>
     <div class="events"></div>
     <div class="section dimensions">
@@ -251,8 +287,11 @@ function init () {
   document.body.appendChild(el)
   iframe = document.querySelector('iframe')
   elem = {
+    cardsFrame: document.querySelector('.container--cards .frame'),
     events: document.querySelector('.events'),
+    bases: document.querySelector('.bases'),
     pages: document.querySelector('.pages'),
+    cards: document.querySelector('.cards'),
     psids: document.querySelector('.psids'),
     container: document.querySelector('.container'),
     title: document.querySelector('.title'),
@@ -260,6 +299,7 @@ function init () {
     width: document.querySelector('.width'),
     height: document.querySelector('.height'),
     confirm: document.querySelector('.confirm'),
+    tab: document.querySelector('.tab'),
     aside: document.querySelector('aside'),
   }
 
@@ -288,6 +328,10 @@ function init () {
     }
   })
 
+  loadCards()
+
+  loadBases()
+
   loadPages()
 
   loadContexts()
@@ -300,6 +344,65 @@ function init () {
   loadSettings()
 
   visitFirstPage()
+}
+
+function loadCards() {
+  var cards = window.cards || []
+  if (cards.length && !cards.find(c => c.url === localStorage.testerCard)) {
+    localStorage.testerCard = cards[0].url
+  } else if (!cards.length) {
+    return
+  }
+
+  if (cards.length > 1) {
+    elem.cards.innerHTML = cards
+      .map(card => `<button class="btn" onclick="setCard(event)" data-card="${card.url}" class="${localStorage.testerCard === card.url ? 'active' : ''}">${card.name}</button>`)
+      .join('')
+    elem.cardActive = elem.cards.querySelector('.active')
+  } else {
+    elem.cards.innerHTML = ''
+  }
+
+  if (cards.length) {
+    elem.cardsFrame.innerHTML = cards
+      .map(card => `<div class="card" style="height:${card.height}px;">
+        <iframe frameborder="0" name="iframe" src="${localStorage.testerBase || ''}${card.url}"></iframe>
+      </div>`)
+      .join('')
+  }
+}
+
+function setCard(event) {
+  localStorage.testerCard = event.target.dataset.card
+  card.src = localStorage.testerCard
+  if (elem.cardActive) {
+    elem.cardActive.classList.remove('active')
+  }
+  elem.cardActive = event.target
+  event.target.classList.add('active')
+}
+
+function loadBases() {
+  var bases = window.bases || ['']
+  if (bases.length > 1) {
+    elem.bases.innerHTML = bases
+      .map(base => `<button class="btn" onclick="setBase(event)" data-base="${base.url}" class="${localStorage.testerBase === base.url ? 'active' : ''}">${base.name}</button>`)
+      .join('')
+    elem.baseActive = elem.bases.querySelector('.active')
+  } else {
+    elem.bases.innerHTML = ''
+  }
+}
+
+function setBase(event) {
+  localStorage.testerBase = event.target.dataset.base
+  setLocation(localStorage.testerBase + iframe.contentWindow.location.pathname)
+  loadCards()
+  if (elem.baseActive) {
+    elem.baseActive.classList.remove('active')
+  }
+  elem.baseActive = event.target
+  event.target.classList.add('active')
 }
 
 function loadPages() {
@@ -342,6 +445,7 @@ function setDimensions() {
 function setWidth(width) {
   localStorage.testerWidth = width
   elem.container.style.width = width + 'px'
+  elem.container.nextElementSibling.style.width = width + 'px'
   elem.aside.style.left = (parseInt(width) + 30) + 'px'
   setDimensions()
 }
@@ -356,10 +460,19 @@ function loadSettings() {
   if (localStorage.testerConfirm) {
     elem.confirm.checked = true
   }
+  if (localStorage.testerTab) {
+    elem.tab.checked = true
+    document.body.className = 'tab--' + localStorage.testerTab
+  }
 }
 
 function toggleConfirm() {
   localStorage.testerConfirm = elem.confirm.checked ? 'checked' : ''
+}
+
+function toggleTab() {
+  localStorage.testerTab = elem.tab.checked ? 'cards' : ''
+  document.body.className = 'tab--' + localStorage.testerTab
 }
 
 function visitFirstPage() {
