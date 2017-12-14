@@ -260,7 +260,7 @@ el.innerHTML = ` <style>
         <button onclick="setWidth(320);setHeight(504)">iPhone 5</button>
         <button onclick="setWidth(375);setHeight(604)">iPhone 6</button>
         <button onclick="setWidth(405);setHeight(604)">messenger.com</button>
-        <button onclick="setWidth(414):setHeight(660)">iPhone 6+</button>
+        <button onclick="setWidth(414);setHeight(660)">iPhone 6+</button>
         <button onclick="setWidth(768);setHeight(900)">iPad</button>
       </div>
     </div>
