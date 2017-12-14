@@ -257,11 +257,11 @@ el.innerHTML = ` <style>
       &nbsp;
       Height: <span class="height"></span>
       <div>
-        <button onclick="setWidth(320)">iPhone 5</button>
-        <button onclick="setWidth(375)">iPhone 6</button>
-        <button onclick="setWidth(405)">messenger.com</button>
-        <button onclick="setWidth(414)">iPhone 7</button>
-        <button onclick="setWidth(768)">iPad</button>
+        <button onclick="setWidth(320);setHeight(504)">iPhone 5</button>
+        <button onclick="setWidth(375);setHeight(604)">iPhone 6</button>
+        <button onclick="setWidth(405);setHeight(604)">messenger.com</button>
+        <button onclick="setWidth(414):setHeight(660)">iPhone 6+</button>
+        <button onclick="setWidth(768);setHeight(900)">iPad</button>
       </div>
     </div>
     <div class="section">
